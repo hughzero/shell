@@ -1,0 +1,6 @@
+#!/bin/bash
+for i in {1..254};
+do
+  ip="192.168.1.$i"
+  (ping -c 1 -w 1 $ip &> /dev/null && echo "$ip 可达") &
+done
