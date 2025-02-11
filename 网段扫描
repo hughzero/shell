@@ -1,6 +1,29 @@
 #!/bin/bash
-for i in {1..254};
-do
+
+# 设置最大并发数量，避免系统资源占用过高
+MAX_CONCURRENT=50
+current_concurrent=0
+
+# 使用函数来处理每个IP的ping操作
+ping_ip() {
+  local ip="$1"
+  if ping -c 1 -w 1 "$ip" &> /dev/null; then
+    echo "$ip 可达"
+  fi
+}
+
+# 遍历IP地址并按并发限制进行处理
+for i in {1..254}; do
   ip="192.168.1.$i"
-  (ping -c 1 -w 1 $ip &> /dev/null && echo "$ip 可达") &
+  ping_ip "$ip" &
+
+  # 控制并发数
+  ((current_concurrent++))
+  if ((current_concurrent >= MAX_CONCURRENT)); then
+    wait -n  # 等待一个后台进程结束
+    ((current_concurrent--))
+  fi
 done
+
+# 等待所有进程结束
+wait
